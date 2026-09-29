@@ -1,0 +1,242 @@
+/*
+ * Оболочка карточки: тень и место под рамку. Фон и рамка вынесены на слой .tool-card__base — в 3D
+ * содержимое лежит ПОД оболочкой, и будь фон на самой карточке, он закрыл бы всё, что ушло вглубь.
+ * Прозрачная рамка (1px) сохраняет отступы содержимого как в макете.
+ */
+.tool-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-card);
+}
+
+.tool-card--grow {
+  flex: 1;
+}
+
+/* Цвет пятна света: белый блик на белой карточке не виден, поэтому оттенок по бренду колонки */
+.tool-card--create-content,
+.tool-card--polish-text {
+  --tool-glow-rgb: 246, 85, 82;
+}
+
+.tool-card--launch-ads,
+.tool-card--ai-materials {
+  --tool-glow-rgb: 51, 132, 255;
+}
+
+/*
+ * TILT + PARALLAX: общий 3D-режим и слои — styles/parallax.css, числа — effects/parallax.config.ts. Ядро ставит на
+ * карточку классы action-card--tilting / --hovered (имена зашиты в ядре и общие для всех карточек), поэтому
+ * состояния тут описаны через них.
+ */
+
+/*
+ * У карточки с ракетой хвост иллюстрации выходит за нижний край и заходит на СЛЕДУЮЩУЮ карточку
+ * колонки. z-index самой иллюстрации (.tool-card__image, см. ниже) для этого недостаточен: у каждой
+ * `[data-parallax-card]` теперь постоянный will-change (styles/parallax.css, десктоп+мышь), а он сам
+ * по себе создаёт контекст наложения — то есть КАЖДАЯ .tool-card уже изолированный слой, и z-index
+ * потомка не может «вырваться» из него, чтобы обойти соседнюю карточку. Поэтому z-index ставим на
+ * саму карточку, причём постоянно (не только на время наклона, класс --tilting здесь больше не нужен).
+ */
+.tool-card--launch-ads {
+  z-index: 1;
+}
+
+/* Фон карточки — самый дальний слой, вместе с 1px-рамкой (внутренняя тень) закрывает всю её площадь */
+.tool-card__base {
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-base);
+  background: var(--color-white);
+  box-shadow: inset 0 0 0 1px var(--color-border-card);
+}
+
+/* position: relative — чтобы в плоском состоянии содержимое рисовалось поверх фона */
+.tool-card__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tool-card__brand {
+  display: flex;
+  align-items: center;
+  height: 28px;
+}
+
+/* ---------- ОБОЛОЧКА (стекло) + SPOTLIGHT: световое пятно под курсором (src/effects/spotlight.ts) ---------- */
+
+.tool-card__spotlight {
+  --glow-bleed: 30px;
+
+  position: absolute;
+  inset: -1px; /* по внешнему контуру карточки, как и фон */
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(var(--tool-glow-rgb), 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease; /* fade-out */
+  /* Свой слой для дорогого blur-пятна (__glow) — см. комментарий в ActionCard.css */
+  will-change: opacity;
+  contain: paint;
+}
+
+.tool-card.action-card--hovered .tool-card__spotlight {
+  opacity: 1;
+  transition-duration: 0.2s; /* fade-in */
+}
+
+/* Пятно шире карточки на --glow-bleed с каждой стороны (blur не «съедает» край); --x, --y, --spot-r выставляет JS */
+.tool-card__glow {
+  position: absolute;
+  inset: calc(var(--glow-bleed) * -1);
+  background: radial-gradient(
+    circle var(--spot-r, 320px) at calc(var(--x, 50%) + var(--glow-bleed)) calc(var(--y, 50%) + var(--glow-bleed)),
+    rgba(var(--tool-glow-rgb), 0.16) 0%,
+    rgba(var(--tool-glow-rgb), 0.08) 45%,
+    rgba(var(--tool-glow-rgb), 0) 100%
+  );
+  filter: blur(20px);
+}
+
+/* ---------- ИЛЛЮСТРАЦИЯ: часть карточки, лежит ПЕРЕД оболочкой и выходит за её границы ---------- */
+
+/*
+ * Внешний слой (.tool-card__image) параллакс двигает через inline-transform, поэтому собственных
+ * transform у него нет: поворот и обрезка живут во вложенной рамке .tool-card__frame.
+ * Координаты отсчитываются от внутреннего края рамки карточки (padding box).
+ */
+.tool-card__image {
+  position: absolute;
+  z-index: 1; /* в покое иллюстрация выше соседней карточки, на которую она заходит */
+  pointer-events: none;
+}
+
+.tool-card__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.tool-card__picture {
+  position: absolute;
+}
+
+.tool-card__image--document {
+  top: 394.75px;
+  left: 80px;
+  width: 401px;
+  height: 343px;
+}
+
+.tool-card__image--document .tool-card__picture {
+  top: -8.24%;
+  left: -9.74%;
+  width: 119.48%;
+  height: 116.48%;
+}
+
+/*
+ * Ракета без дополнительного поворота (рисунок уже наклонён), центр — на той же оси, что и раньше;
+ * хвост выходит за нижний край (см. z-index выше). Уменьшена и опущена по просьбе пользователя — при
+ * исходном размере (378.862px, top 306.5px) верх ракеты заходил на текст карточки (на ~45px). Рисунок
+ * крупнее рамки (118.3%), поэтому рамка не обрезает (overflow: visible), иначе срезались бы края.
+ */
+.tool-card__image--rocket {
+  top: 377px;
+  left: 138px;
+  width: 300px;
+  height: 300px;
+}
+
+.tool-card__image--rocket .tool-card__frame {
+  overflow: visible;
+  transform: rotate(0deg);
+}
+
+.tool-card__image--rocket .tool-card__picture {
+  top: -9.15%;
+  left: -9.15%;
+  width: 118.3%;
+  height: 118.3%;
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px), макет 375px
+ * ============================================================================
+ * Отступы карточки 16px (+ рамка 1px = 17px, как в макете). Карточки идут одна под другой; у карточек с
+ * иллюстрацией снизу оставлено место под неё (padding-bottom = отступ 16 + зазор 18 + область картинки из
+ * макета), а сама иллюстрация привязана к НИЖНЕМУ краю карточки и её оси (не к верху): при переносе строк
+ * карточка растёт, а картинка остаётся на том же месте относительно низа. Размеры картинок — из макета:
+ * ракета 234×234 (тот же рисунок и поворот, что на десктопе, только меньше), документ 244×208.
+ * Скругление карточки — переменная radius (20px в мобильном режиме, см. tokens.css).
+ */
+@media (max-width: 1199.98px) {
+  .tool-card {
+    padding: 16px;
+  }
+
+  .tool-card__content {
+    gap: 16px;
+  }
+
+  .tool-card--grow {
+    flex: none;
+  }
+
+  /* Область под ракету — 170px */
+  .tool-card--launch-ads {
+    order: 1;
+    padding-bottom: 204px;
+  }
+
+  .tool-card--create-content {
+    order: 2;
+  }
+
+  .tool-card--ai-materials {
+    order: 3;
+  }
+
+  /* Область под документ — 144.8px */
+  .tool-card--polish-text {
+    order: 4;
+    padding-bottom: 178.8px;
+  }
+
+  /*
+   * Ракета: на 8.5px правее оси карточки, нижний край рамки 234px — на 27.7px ниже низа карточки.
+   * Рисунок вписан в рамку целиком (100%, в отличие от десктопного 118.3%) и не довёрнут: он уже наклонён
+   * (ось −52°, в макете −49°).
+   */
+  .tool-card__image--rocket {
+    top: auto;
+    left: calc(50% - 108.5px);
+    bottom: -27.66px;
+    width: 234px;
+    height: 234px;
+  }
+
+  .tool-card__image--rocket .tool-card__picture {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Документ: по оси карточки (+0.5px), нижний край рамки — на 29.5px ниже низа карточки */
+  .tool-card__image--document {
+    top: auto;
+    bottom: -29.5px;
+    left: calc(50% - 121.5px);
+    width: 244px;
+    height: 208px;
+  }
+}

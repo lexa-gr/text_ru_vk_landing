@@ -1,0 +1,53 @@
+/*
+ * Контейнер: inline-grid, все слова лежат в ОДНОЙ ячейке (grid-area: 1 / 1).
+ * Ширина ячейки = самое широкое слово из списка → остальной текст и кнопка под заголовком
+ * не двигаются при смене слов разной длины на любых размерах и шрифтах.
+ */
+.word-morph {
+  display: inline-grid;
+  justify-items: start;
+}
+
+.word-morph__sizer,
+.word-morph__word {
+  grid-area: 1 / 1;
+}
+
+/* «Призраки» слов: невидимы, но занимают место и задают ширину контейнера */
+.word-morph__sizer {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/*
+ * ---------- BLUR-MORPH ----------
+ * Чёткое состояние (по умолчанию) и переход В него = «сборка» слова из расфокуса.
+ * Тайминги и сила размытия приходят из JS через переменные (WORD_MORPH в word-morph.ts);
+ * значения после запятой — запасные.
+ */
+.word-morph__word {
+  filter: blur(0px);
+  opacity: 1;
+  transition:
+    filter var(--morph-in, 350ms) ease-out,
+    opacity var(--morph-in, 350ms) ease-out;
+}
+
+/*
+ * Растворённое состояние: класс ставит JS. Переход В него использует эти длительность и
+ * кривую (ease-in); обратный переход (снятие класса) — базовые, выше.
+ */
+.word-morph__word--morphing {
+  filter: blur(var(--morph-blur, 10px));
+  opacity: 0;
+  transition-duration: var(--morph-out, 350ms);
+  transition-timing-function: ease-in;
+}
+
+/* Доступность: без анимации (JS при этом тоже не меняет слова) */
+@media (prefers-reduced-motion: reduce) {
+  .word-morph__word {
+    transition: none;
+  }
+}

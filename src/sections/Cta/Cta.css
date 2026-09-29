@@ -1,0 +1,246 @@
+/*
+ * Баннер — карточка tilt + parallax. Фон и свечение вынесены на слой .cta__base, а overflow: hidden
+ * со скруглением перенесён на него: в 3D содержимое лежит ПОД оболочкой, и непрозрачный фон или
+ * overflow на самом баннере закрыли бы уходящие вглубь слои (см. также PriceCard).
+ */
+.cta__banner {
+  position: relative;
+  padding: 80px;
+  border-radius: var(--radius-base);
+  color: var(--color-white);
+}
+
+/*
+ * TILT + PARALLAX: общий 3D-режим и слои — styles/parallax.css, числа — effects/parallax.config.ts. Ядро ставит на
+ * баннер классы action-card--tilting / --hovered (имена зашиты в ядре и общие для всех карточек).
+ */
+
+/* Фон — самый дальний слой; обрезает свечение по скруглённому контуру баннера */
+.cta__base {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--color-cta-blue);
+}
+
+/* position: relative — чтобы в плоском состоянии содержимое рисовалось поверх фона */
+.cta__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 36px;
+}
+
+.cta__logos {
+  display: flex;
+  align-items: center;
+  gap: 18.363px;
+  height: 27.204px;
+}
+
+.cta__title {
+  white-space: nowrap;
+}
+
+.cta__text {
+  width: 558px;
+}
+
+/* Свечение: эллипс 238×880, повёрнут на −98.98°, размытие 150px заложено в SVG. Часть слоя фона */
+.cta__glow {
+  position: absolute;
+  top: 370px;
+  left: 555px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 906.742px;
+  height: 372.544px;
+  pointer-events: none;
+}
+
+.cta__glow-rotated {
+  position: relative;
+  flex: none;
+  width: 238.092px;
+  height: 880.375px;
+  transform: rotate(-98.98deg);
+}
+
+.cta__glow-image {
+  position: absolute;
+  top: -34.08%;
+  left: -126%;
+  width: 352%;
+  height: 168.16%;
+}
+
+/* ---------- ОБОЛОЧКА (стекло) + SPOTLIGHT: световое пятно под курсором (src/effects/spotlight.ts) ---------- */
+
+/*
+ * Самый ближний слой баннера без параллакса (z = 0). В покое невидимо; при наведении проявляется
+ * вместе с бликом: светлая кромка по контуру + пятно света. Слой-маска обрезает пятно по
+ * границам и скруглению баннера. (.cta__glow выше — это свечение фона, не пятно под курсором.)
+ */
+.cta__spotlight {
+  --glow-bleed: 30px;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease; /* fade-out */
+  /* Свой слой для дорогого blur-пятна (__spotlight-glow) — см. комментарий в ActionCard.css */
+  will-change: opacity;
+  contain: paint;
+}
+
+.cta__banner.action-card--hovered .cta__spotlight {
+  opacity: 1;
+  transition-duration: 0.2s; /* fade-in */
+}
+
+/* Пятно шире баннера на --glow-bleed с каждой стороны (blur не «съедает» край); --x, --y, --spot-r выставляет JS */
+.cta__spotlight-glow {
+  position: absolute;
+  inset: calc(var(--glow-bleed) * -1);
+  background: radial-gradient(
+    circle var(--spot-r, 400px) at calc(var(--x, 50%) + var(--glow-bleed)) calc(var(--y, 50%) + var(--glow-bleed)),
+    rgba(255, 255, 255, 0.125) 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(20px);
+}
+
+/*
+ * Плитки-иконки — слои ПЕРЕД оболочкой, выходят за края баннера. Координаты отсчитываются от
+ * баннера (он совпадает с контейнером). Собственных transform у самих слоёв нет: JS перезаписывает
+ * их inline-transform; поворот и обрезка живут на вложенных .cta__picture / .cta__frame.
+ */
+.cta__image {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cta__image--textru {
+  top: 300px;
+  left: 1008px;
+  width: 270.764px;
+  height: 270.764px;
+}
+
+.cta__image--textru .cta__picture {
+  flex: none;
+  width: 245.234px;
+  height: 245.234px;
+  border-radius: 23.246px;
+  box-shadow: 9px 18px 19.4px rgba(97, 11, 50, 0.2);
+  object-fit: cover;
+  object-position: bottom;
+  transform: rotate(-6.33deg);
+}
+
+.cta__image--vk {
+  top: 366px;
+  left: 754px;
+  width: 345.506px;
+  height: 350.42px;
+}
+
+/* Картинка увеличена и обрезана внутри скруглённой рамки, как в макете */
+.cta__frame {
+  position: relative;
+  flex: none;
+  width: 269.191px;
+  height: 277.186px;
+  overflow: hidden;
+  border-radius: 25.743px;
+  transform: rotate(19.24deg);
+}
+
+.cta__frame .cta__picture {
+  position: absolute;
+  top: -11.25%;
+  left: -6.27%;
+  width: 112.54%;
+  height: 122.18%;
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px), макет 375px
+ * ============================================================================
+ * Текст и кнопка — в верхней части баннера, внизу оставлено место под свечение и плитки. Плитки
+ * привязаны к НИЖНЕМУ краю баннера (текст переносится по-разному — баннер растёт, а плитки стоят на
+ * том же расстоянии от низа) и выходят за него вниз, поэтому у баннера большой margin-bottom.
+ * Размеры плиток — десктопные, уменьшенные: textru ×0.80, vk ×0.93.
+ */
+@media (max-width: 1199.98px) {
+  .cta__banner {
+    padding: 20px 20px 227px;
+    margin-bottom: 132px;
+  }
+
+  /*
+   * Стиль h2 из токенов (mobile/h2 30/34). Строка «на специальных» ≈ 9,5 размера шрифта в ширину, в баннере на 375px
+   * остаётся 295px — размер ужимается под ширину, но не больше токена. Зазор до текста 16px (общий 36px минус 20px).
+   */
+  .cta__title {
+    margin-bottom: -20px;
+    font-size: min(var(--h2-size), calc((100vw - 2 * var(--page-gutter) - 40px) / 9.5));
+    line-height: var(--h2-line);
+    letter-spacing: var(--h2-spacing);
+    white-space: normal;
+  }
+
+  .cta__text {
+    width: auto;
+  }
+
+  /* Свечение уходит к нижнему краю: горизонтальный эллипс по центру, снизу выходит за баннер */
+  .cta__glow {
+    top: auto;
+    bottom: -110px;
+    left: 50%;
+    margin-left: -453px;
+  }
+
+  .cta__image--textru {
+    top: auto;
+    left: auto;
+    right: -25px;
+    bottom: -1px;
+    width: 217.18px;
+    height: 217.18px;
+  }
+
+  .cta__image--textru .cta__picture {
+    width: 196.7px;
+    height: 196.7px;
+    border-radius: 18.6px;
+    box-shadow: 7.2px 14.4px 15.6px rgba(97, 11, 50, 0.2);
+  }
+
+  .cta__image--vk {
+    top: auto;
+    left: calc(50% - 231.7px);
+    bottom: -177px;
+    width: 321.37px;
+    height: 325.94px;
+  }
+
+  .cta__frame {
+    width: 250.4px;
+    height: 257.8px;
+    border-radius: 23.9px;
+  }
+}

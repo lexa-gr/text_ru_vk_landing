@@ -1,0 +1,18 @@
+/*
+ * Иллюстрации выходят за границы контейнера — горизонтальный скролл не нужен. overflow-y: visible
+ * здесь обязателен явно: если overflow-x задан, а overflow-y — нет, спецификация подставляет вместо
+ * visible значение auto (а не оставляет visible), и это auto обрезает контент, уходящий по вертикали
+ * за пределы .landing — например hero__image (top: -180px + поворот -7.83deg).
+ */
+.landing {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.landing__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  /* Верхний отступ держит сама секция hero (--hero-offset): она начинается от самого верха страницы */
+  padding: 0 0 var(--footer-gap);
+}

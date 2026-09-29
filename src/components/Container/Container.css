@@ -1,0 +1,17 @@
+/*
+ * Десктоп (≥ 1200px): фиксированная ширина макета. Ниже — резиновый контейнер с боковыми отступами
+ * --page-gutter; max-width не даёт мобильной раскладке растягиваться на планшетах.
+ */
+.container {
+  position: relative;
+  width: var(--container-width);
+  margin: 0 auto;
+}
+
+@media (max-width: 1199.98px) {
+  .container {
+    width: 100%;
+    max-width: 760px;
+    padding-inline: var(--page-gutter);
+  }
+}

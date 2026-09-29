@@ -1,0 +1,35 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: var(--color-page-bg);
+  color: var(--color-black);
+  font: 300 var(--body-size) / var(--body-line) var(--font-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Десктопная раскладка рассчитана ровно на ширину контейнера; ниже 1200px страница резиновая (см. tokens.css) */
+@media (min-width: 1200px) {
+  body {
+    min-width: var(--container-width);
+  }
+}
+
+img {
+  display: block;
+  max-width: none;
+}
+
+a {
+  color: inherit;
+}

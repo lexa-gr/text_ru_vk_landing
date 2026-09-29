@@ -1,0 +1,145 @@
+/*
+ * Дизайн-токены. Переменные из Figma (color/*, radius/*, стили текста) + значения,
+ * которые в макете заданы напрямую, без переменной.
+ */
+:root {
+  /* Figma variables: color */
+  --color-black: #1b1a21;
+  --color-red: #f65552;
+  --color-blue: #3384ff;
+  --color-white: #fbfefe;
+  --color-grey-900: #3c3c3c;
+
+  /* Цвета из макета без переменной */
+  --color-page-bg: #f0f7fa;
+  --color-cta-blue: #3375f6;
+  --color-cta-text: #2b196f;
+  --color-green: #04c22d;
+  --color-step-idle: #cecade;
+  --color-border-card: #edece9;
+  --color-border-header: #e6e6e6;
+  --color-header-bg: rgba(255, 255, 255, 0.75);
+  --color-highlight: rgba(51, 117, 246, 0.2);
+
+  /* Кнопка: состояния Hover / Active из компонента Button */
+  --button-outline-black-hover: rgba(43, 25, 111, 0.08);
+  --button-outline-black-active: rgba(43, 25, 111, 0.17);
+  --button-fill-black-hover: #1f1054;
+  --button-fill-black-active: #13083b;
+  --button-outline-white-hover: rgba(255, 255, 255, 0.1);
+  --button-outline-white-active: rgba(255, 255, 255, 0.2);
+  --button-fill-white-hover: #e2edf2;
+  --button-fill-white-active: #ccdbe3;
+
+  /* Figma variables: radius */
+  --radius-base: 32px;
+  --radius-pill: 999px;
+
+  /* Шрифты. В макете больше нет Dela Gothic One: заголовки (h1–h3) теперь тоже Unbounded — тот же
+     файл, что у --font-text. Токен оставлен отдельным именем (а не заменён везде на --font-text) —
+     семантика «шрифт заголовков» вместо «шрифт текста» и задел, если дизайн снова разойдётся. */
+  --font-display: 'Unbounded', sans-serif;
+  --font-text: 'Unbounded', sans-serif;
+  --font-accent: 'Golos Text', sans-serif;
+
+  /* Figma text styles — размеры фиксированные, в px */
+  --h1-size: 90px;
+  --h1-line: 100px;
+  --h1-spacing: -2.7px;
+
+  --h2-size: 62px;
+  --h2-line: 70px;
+  --h2-spacing: -1.24px;
+
+  --h3-size: 38px;
+  --h3-line: 48px;
+  --h3-spacing: 0px;
+
+  --body-size: 20px;
+  --body-line: 32px;
+  --body-tight-spacing: -0.8px;
+
+  /* Подпись кнопок — свой стиль, не зависит от body */
+  --button-size: 20px;
+  --button-line: 32px;
+  --button-weight: 300;
+  --button-spacing: 0;
+
+  --description-size: 16px;
+  --description-line: 24px;
+
+  /* Тени */
+  --shadow-card: 0 16px 45.6px rgba(62, 69, 95, 0.15);
+  --shadow-header: 0 12px 32.2px rgba(43, 25, 111, 0.14);
+
+  /* Раскладка */
+  --container-width: 1200px;
+  --section-gap: 180px;
+  /* Верхний отступ секции hero (логотипы — на этом расстоянии от верха страницы); снизу — такой же на десктопе */
+  --hero-offset: 48px;
+  --footer-gap: 149px;
+
+  /* Фиксированная шапка: отступ сверху и высота. Нижняя граница шапки = --header-top + --header-height;
+     от неё «липкая» картинка секции features отмеряет своё положение (см. Features.css) */
+  --header-top: 24px;
+  --header-height: 82px;
+
+  /* Боковые отступы страницы: на десктопе контейнер фиксированной ширины, отступов нет */
+  --page-gutter: 0px;
+}
+
+/*
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА: всё, что уже десктопного размера (< 1200px, ширина макета).
+ * ⚠ Порог 1200px общий для CSS и JS: useCardEffects. Ниже него страница резиновая, контейнер тянется
+ * по ширине с боковыми отступами, текстовые стили и отступы — из мобильного макета Figma (375px).
+ */
+@media (max-width: 1199.98px) {
+  :root {
+    /* Мобильные стили текста: mobile/h1, h2, h3 из Figma; body на мобильном 16/24 (description и так 16/24) */
+    --h1-size: 50px;
+    --h1-line: 56px;
+    --h1-spacing: -1.5px;
+
+    /* mobile/h2 из Figma: 30/34, трекинг −2% (−0.6px); min() — страховка для самых узких экранов (320px) */
+    --h2-size: min(30px, 10vw);
+    --h2-line: 34px;
+    --h2-spacing: -0.6px;
+
+    --h3-size: 26px;
+    --h3-line: 32px;
+    --h3-spacing: -0.26px;
+
+    --body-size: 16px;
+    --body-line: 24px;
+
+    /* Figma variable radius/border-radius, режим mobile */
+    --radius-base: 20px;
+
+    /* Логотипы брендов в блоках страницы (размер как в карточках hero, см. styles/logos.css) */
+    --logo-vk-width: 116px;
+    --logo-vk-height: 21.835px;
+    --logo-textru-width: 81px;
+    --logo-textru-height: 21.376px;
+
+    /* mobile/caption из Figma: мелкий текст в карточках */
+    --caption-size: 12px;
+    --caption-line: 16px;
+
+    /* Кнопки на мобильном: 16/24, жирные (600 — самое жирное начертание Unbounded, подключённое в main.tsx) */
+    --button-size: 16px;
+    --button-line: 24px;
+    --button-weight: 600;
+    --button-spacing: -0.64px;
+
+    /* Тот же −4%, что на десктопе (−0.8px при 20px), но от 16px — как mobile/body-bold в Figma */
+    --body-tight-spacing: -0.64px;
+
+    --page-gutter: 20px;
+    --section-gap: 60px;
+    /* Плашка шапки: отступ сверху и высота (на первом экране скрыта — там логотипы hero, см. Header.tsx) */
+    --header-top: 12px;
+    --header-height: 64px;
+    --hero-offset: 27px;
+    --footer-gap: 0px;
+  }
+}

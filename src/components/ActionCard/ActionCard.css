@@ -1,0 +1,199 @@
+.action-card {
+  position: relative;
+  display: flex;
+  height: 236px;
+  padding: 32px;
+  border-radius: var(--radius-base);
+  color: var(--color-white);
+  text-decoration: none;
+}
+
+/*
+ * TILT + PARALLAX: общий 3D-режим и слои — styles/parallax.css, числа — effects/parallax.config.ts.
+ *
+ * Глубина (от зрителя вглубь): стекло (.action-card__spotlight) → логотип, текст и стрелка →
+ * фон (.action-card__base). Содержимое лежит ПОД оболочкой, поэтому фон вынесен на собственный
+ * слой: если бы он был на самой карточке, он закрыл бы всё, что ушло за неё.
+ */
+
+/* Фон карточки — самый дальний слой; скругление повторяет оболочку */
+.action-card__base {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.action-card--premium .action-card__base {
+  background: var(--color-blue);
+}
+
+.action-card--pro .action-card__base {
+  background: var(--color-red);
+}
+
+/* position: relative — чтобы в плоском состоянии содержимое рисовалось поверх фона */
+.action-card__content {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.action-card__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 0;
+}
+
+.action-card__title {
+  white-space: nowrap;
+}
+
+.action-card__badge {
+  padding: 0 12px 2px;
+  border: 2px solid currentColor;
+  border-radius: 76px;
+  font: 500 20px / 27px var(--font-accent);
+  white-space: nowrap;
+}
+
+.action-card__text {
+  width: 100%;
+}
+
+/* Кнопка-стрелка 68×68 из двух слоёв: неподвижная рамка (square.svg) и стрелка (arrow.svg) */
+.action-card__arrow {
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  width: 68px;
+  height: 68px;
+}
+
+.action-card__arrow-square,
+.action-card__arrow-glyph {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.22s ease;
+}
+
+/* ---------- ОБОЛОЧКА (стекло) + SPOTLIGHT: световое пятно под курсором (src/effects/spotlight.ts) ---------- */
+
+/*
+ * Оболочка — самый ближний слой, лежит поверх содержимого. В покое невидима; при наведении
+ * проявляется вместе с бликом: тонкая светлая кромка по контуру + пятно света. Слой-маска
+ * обрезает пятно по границам и скруглению карточки.
+ */
+.action-card__spotlight {
+  --glow-bleed: 30px;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease; /* fade-out */
+  /* Дочернее пятно дорого растрируется (filter: blur, см. __glow) — свой слой не даёт браузеру
+     заново растрировать его на каждый кадр fade-перехода, только один раз и потом просто плавно
+     проявлять/скрывать готовую текстуру на GPU. Без этого во время затухания/появления страдает
+     соседняя растеризация (например, текст на кадре) — см. docs/tilt-spotlight-effect.md. */
+  will-change: opacity;
+  contain: paint;
+}
+
+.action-card--hovered .action-card__spotlight {
+  opacity: 1;
+  transition-duration: 0.2s; /* fade-in */
+}
+
+/*
+ * Само пятно. Слой шире карточки на --glow-bleed с каждой стороны, чтобы blur не «съедал»
+ * край у границ карточки; координаты градиента сдвинуты на то же значение.
+ * --x, --y, --spot-r выставляет JS: радиус — 100% меньшей стороны карточки (диаметр вдвое больше
+ * карточки по высоте), яркость центра 12.5% — мягкое, едва заметное свечение.
+ */
+.action-card__glow {
+  position: absolute;
+  inset: calc(var(--glow-bleed) * -1);
+  background: radial-gradient(
+    circle var(--spot-r, 236px) at calc(var(--x, 50%) + var(--glow-bleed)) calc(var(--y, 50%) + var(--glow-bleed)),
+    rgba(255, 255, 255, 0.125) 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(20px);
+}
+
+/*
+ * ---------- Ховер кнопки-стрелки: только для устройств с курсором ----------
+ * Кнопка целиком увеличивается на 10%, а сама стрелка ↗ дополнительно поворачивается на 45° (→).
+ * Рамка остаётся квадратной. Оба слоя вращаются/растут вокруг общего центра (34px, 34px).
+ */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .action-card:hover .action-card__arrow-square,
+  .action-card:focus-visible .action-card__arrow-square {
+    transform: scale(1.1);
+  }
+
+  .action-card:hover .action-card__arrow-glyph,
+  .action-card:focus-visible .action-card__arrow-glyph {
+    transform: scale(1.1) rotate(45deg);
+  }
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px), макет 375px
+ * ============================================================================
+ * Всё по мобильному макету (узел hero__cards): высота по содержимому, отступы 20px, скругление 32px
+ * (как на десктопе), gap между блоками внутри карточки 20px (у PRO между заголовком и текстом — 12px).
+ * Логотипы меньше (VK 116×21.835, Текст.ру 81×21.376 — общее правило styles/logos.css), стрелка 48px в углу с отступом 8px (иконки
+ * *-sm.svg подставляются в ActionCard.tsx через <picture>), текст PRO — caption 12/16.
+ */
+@media (max-width: 1199.98px) {
+  .action-card {
+    height: auto;
+    padding: 20px;
+  }
+
+  /* Высота карточки по содержимому — расстояние между заголовком и текстом задаёт gap, а не space-between */
+  .action-card__info {
+    gap: 20px;
+  }
+
+  .action-card--pro .action-card__info {
+    gap: 12px;
+  }
+
+  /* Заголовок в одну строку, как в макете. «Премиум-подписка» ≈ 11,6 размера шрифта в ширину; в макете карточка
+     на всю ширину 375, у нас колонка уже (поля страницы + отступы карточки), поэтому размер ужимается под
+     неё, но не больше 26px из макета */
+  .action-card__title.t-h3 {
+    font-size: min(var(--h3-size), calc((100vw - 2 * var(--page-gutter) - 40px) / 11.7));
+    white-space: nowrap;
+  }
+
+  .action-card__text.t-body {
+    font: 300 var(--caption-size) / var(--caption-line) var(--font-text);
+  }
+
+  .action-card__arrow {
+    top: 8px;
+    right: 8px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .action-card__arrow-square,
+  .action-card__arrow-glyph {
+    width: 100%;
+    height: 100%;
+  }
+}

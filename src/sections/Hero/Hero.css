@@ -1,0 +1,596 @@
+/*
+ * ============================================================================
+ * КОНТЕЙНЕР СЕКЦИИ + ИНТРО-ТАЙМЛАЙН
+ * ============================================================================
+ * Высота `.hero` определяется реальным контентом (`.hero__inner`, обычный поток) и на десктопе не
+ * меньше экрана (min-height: 100vh — это и есть «первый экран лендинга»). Декоративные слои интро
+ * (`.hero__timeline`) — position: absolute; inset: 0, из потока выключены, поэтому смена экранов не
+ * двигает высоту секции (никаких layout shift). isolation: isolate — z-index слоёв ниже (2…9) живут в
+ * своей песочнице и не пересекаются с остальной страницей (шапка — z-index 100).
+ *
+ * Десктоп: секция начинается от самого верха страницы и сама держит отступы (48px сверху и снизу, из
+ * --hero-offset): логотипы — вверху, блок контента (заголовок + карточки) стоит по центру экрана по
+ * вертикали. Красные/синие экраны интро закрывают весь экран, без светлой полосы сверху.
+ *
+ * overflow: hidden стоит НЕ на самой секции, а на `.hero__timeline` — декоративном слое интро (шторки,
+ * экраны 1–2): им нужно обрезаться по границам секции, а вот `.hero__image` (реальный контент, заходит
+ * за верхний край на -180px) обрезаться не должен — иначе часть иллюстрации срезана контейнером.
+ * Горизонтальный скролл от bleed-элементов гасится отдельно, на уровне всей страницы (App.css,
+ * `.landing { overflow-x: clip }`), поэтому клипать по X ещё раз здесь не нужно.
+ */
+.hero {
+  /* Нижний отступ первого экрана, высота блока контента экрана 3 (заголовок 404 + зазор 97 + карточки
+     236,24 из макета) и блок логотипов (27,2 + отступ 32): по ним экраны 1–2 ставят свой заголовок ровно
+     туда, где стоит настоящий h1 */
+  --hero-bottom: 48px;
+  --hero-content-height: 737.24px;
+  --hero-logos-block: 59.2px;
+
+  /* Контент центрируется по высоте ЭКРАНА, а не свободного места под логотипами: логотипы занимают сверху
+     --hero-logos-block, поэтому снизу добавляется столько же. На невысоких окнах запас сжимается до нуля,
+     чтобы секция не вылезала за 100vh раньше времени */
+  --hero-centering-pad: clamp(
+    0px,
+    calc(100vh - var(--hero-offset) - var(--hero-logos-block) - var(--hero-content-height) - var(--hero-bottom)),
+    var(--hero-logos-block)
+  );
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: var(--hero-offset) 0 var(--hero-bottom);
+  isolation: isolate;
+}
+
+/* overflow: hidden — только у декоративного слоя интро, не у секции целиком, см. комментарий выше */
+.hero__timeline {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Экран 1 — свой непрозрачный фон (красный): всегда виден там, где его не закрывает шторка/контент */
+.hero__screen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.hero__screen--1 {
+  background: var(--color-red);
+}
+
+/* Экран 2 своего фона не имеет — фон ему даёт подъехавшая шторка 1 (синяя), которая ниже по z-index */
+.hero__screen--2 {
+  z-index: 4;
+}
+
+/*
+ * Содержимое экранов 1–2: по горизонтали — по макету (десктоп 1728×1068, всё привязано к контейнеру 1200px),
+ * по вертикали — по ЦЕНТРУ ЭКРАНА, независимо от настоящего заголовка экрана 3: заголовок и картинка
+ * центрируются на одной горизонтальной оси (абсолютный блок с top: 0 + bottom: 0 + margin-block: auto —
+ * без transform, он занят анимацией появления). Размер заголовка — тот же h1 (89/78) из макета. Контейнер
+ * растянут на всю высоту секции (margin: 0 auto центрирует абсолютный блок с заданной шириной).
+ */
+.hero__screen-inner.container {
+  position: absolute;
+  inset: 0;
+}
+
+.hero__screen-title.t-h1 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 773px;
+  height: fit-content;
+  margin-block: auto;
+  margin-inline: 0;
+  color: var(--color-white);
+}
+
+/* Блик: белый круг 356px с размытием (SVG-экспорт с полем −70.22% под размытие, как в макете) */
+.hero__screen-glow {
+  position: absolute;
+  top: calc(50% - 250px + var(--screen-glow-top));
+  left: var(--screen-glow-left);
+  width: 356px;
+  height: 356px;
+  pointer-events: none;
+}
+
+.hero__screen-glow-image {
+  position: absolute;
+  top: -70.22%;
+  left: -70.22%;
+  display: block;
+  width: 240.44%;
+  max-width: none;
+  height: 240.44%;
+}
+
+.hero__screen-picture {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--screen-image-left);
+  width: 500px;
+  height: 500px;
+  margin-block: auto;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Позиции из макета: по горизонтали — от левого края контейнера, блик по вертикали — от верха картинки;
+   у каждой картинки свои (сама картинка на оси центра экрана) */
+.hero__screen--1 {
+  --screen-image-left: 751px;
+  --screen-glow-left: 895px;
+  --screen-glow-top: -11px;
+}
+
+.hero__screen--2 {
+  --screen-image-left: 731px;
+  --screen-glow-left: 875px;
+  --screen-glow-top: 10px;
+}
+
+/* Шторки: синяя (фон экрана 2) и цвета страницы (закрывает экран 2 и белые логотипы перед экраном 3) */
+.hero__curtain--1 {
+  z-index: 3;
+  background: var(--color-blue);
+}
+
+.hero__curtain--2 {
+  z-index: 6;
+  background: var(--color-page-bg);
+}
+
+/* Слот белых логотипов — тот же Container, что и у настоящих (см. .hero__logos ниже), поэтому размер
+   и позиция совпадают 1:1; поверх экранов 1–2, но под шторкой 2 */
+.hero__logos-slot.container {
+  position: absolute;
+  top: var(--hero-offset);
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+}
+
+/* Оверлей «тап для пропуска»: прозрачная кнопка на всю секцию, поверх реального контента (можно
+   пропустить интро кликом/тапом в любом месте). Видимой кнопки нет */
+.hero__skip-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.hero__skip-overlay:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+/* ---------- РЕАЛЬНЫЙ КОНТЕНТ (экран 3): всегда в финальном состоянии, если интро не идёт ---------- */
+
+/* flex: 1 — контейнер занимает всю высоту секции, чтобы блок контента можно было прижать к низу */
+.hero__inner {
+  position: relative;
+  z-index: 7;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding-bottom: var(--hero-centering-pad);
+}
+
+/*
+ * Блок контента экрана 3. position: relative — иллюстрация (`.hero__image`, top: -120px) отсчитывает
+ * своё положение от верха заголовка, а не от верха контейнера. margin-block: auto делит свободное место
+ * поровну сверху и снизу — блок стоит по центру первого экрана (логотипы уравновешены отступом
+ * .hero__inner, см. --hero-centering-pad).
+ */
+.hero__content {
+  position: relative;
+  margin-block: auto;
+}
+
+/*
+ * position + z-index — по той же причине, что и у .hero__intro ниже: иллюстрация (`.hero__image`)
+ * позиционирована абсолютно и, будучи «спозиционированным» элементом, иначе рисуется поверх
+ * логотипов, лежащих в обычном потоке, независимо от порядка в DOM.
+ * Десктоп: «Текст.ру × VK Реклама» — обратный порядок DOM (vk, ×, textru), который на мобильном
+ * нормальный (см. мобильный блок ниже: там читается как «VK Реклама × Текст.ру»). При row-reverse
+ * flex-end — это ЛЕВЫЙ край: группа прижата влево, 48px от верха секции (padding у `.hero`).
+ * margin-bottom — минимальный зазор до заголовка на низких экранах.
+ */
+.hero__logos {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 32px;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+/*
+ * z-index: заголовок с самым длинным словом («до результата», 730px) шире блока в макете (690px)
+ * и заходит на иллюстрацию справа. Текст должен лежать поверх неё, иначе последняя буква скрыта.
+ */
+.hero__intro {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+  width: 690px;
+}
+
+/* Строки заданы в макете вручную; nowrap не даёт слову с меняющейся длиной перенестись и сдвинуть остальное */
+.hero__title {
+  white-space: nowrap;
+}
+
+.hero__text {
+  width: 608px;
+}
+
+.hero__cards {
+  display: grid;
+  grid-template-columns: 590px 590px;
+  gap: 20px;
+  margin-top: 97px;
+}
+
+/* Иллюстрация лежит поверх красной карточки и выходит за границу контейнера справа */
+.hero__image {
+  position: absolute;
+  top: -180px;
+  left: 650px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 830.286px;
+  height: 743.985px;
+  pointer-events: none;
+}
+
+/*
+ * object-position: left — источник (749×594) ниже целевой рамки по высоте (648), cover масштабирует
+ * его вверх и обрезает лишнее по горизонтали; при center (по умолчанию) обрезка съедала заметный кусок
+ * левого документа рядом с заголовком. Иллюстрация и так уходит за правый край контейнера/экрана по
+ * дизайну (bleed вправо), поэтому обрезку сдвигаем туда — слева ничего не теряется.
+ */
+.hero__picture {
+  display: block;
+  flex: none;
+  width: 749px;
+  height: 648px;
+  object-fit: cover;
+  object-position: left bottom;
+  transform: rotate(-7.83deg);
+}
+
+/*
+ * ============================================================================
+ * АНИМАЦИЯ ИНТРО: только transform/opacity, тайминги — CSS-переменные из hero-intro.ts (heroIntroCssVars,
+ * инлайн-style на `.hero`). `animation-fill-mode: both` держит стартовый кадр (opacity 0) на время
+ * задержки и конечный (opacity 1 / без сдвига) после завершения — контент не «прыгает» и не пропадает.
+ * ============================================================================
+ */
+.hero {
+  --hero-ease-appear: cubic-bezier(0.22, 1, 0.36, 1);
+  --hero-ease-curtain: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes hero-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Экраны 1–2: блик, заголовок и картинка появляются вместе (снизу + fade) */
+.hero__screen-glow,
+.hero__screen-title,
+.hero__screen-picture {
+  animation-name: hero-rise-in;
+  animation-duration: var(--hero-d-screen);
+  animation-timing-function: var(--hero-ease-appear);
+  animation-fill-mode: both;
+}
+
+.hero__screen--1 .hero__screen-glow,
+.hero__screen--1 .hero__screen-title,
+.hero__screen--1 .hero__screen-picture {
+  animation-delay: var(--hero-t-screen1);
+}
+
+.hero__screen--2 .hero__screen-glow,
+.hero__screen--2 .hero__screen-title,
+.hero__screen--2 .hero__screen-picture {
+  animation-delay: var(--hero-t-screen2);
+}
+
+.hero__logos--white {
+  animation: hero-rise-in var(--hero-d-logos-white) var(--hero-ease-appear) var(--hero-t-logos-white) both;
+}
+
+.hero__curtain--1 {
+  animation: hero-slide-up var(--hero-d-curtain) var(--hero-ease-curtain) var(--hero-t-curtain1) both;
+}
+
+.hero__curtain--2 {
+  animation: hero-slide-up var(--hero-d-curtain) var(--hero-ease-curtain) var(--hero-t-curtain2) both;
+}
+
+/*
+ * Реальный контент (экран 3): по умолчанию — финальное состояние (без анимации, без JS ничего не
+ * прячем). Каскад включается ТОЛЬКО модификатором `.hero--intro`, который ставит JS, пока идёт интро;
+ * когда он снимается (интро закончилось/пропущено), элементы уже стоят в конечном кадре анимации,
+ * который совпадает с базовым правилом ниже — видимого «скачка» нет.
+ */
+.hero__image,
+.hero__title,
+.hero__text,
+.hero__button,
+.hero__cards .action-card,
+.hero__logos--color {
+  opacity: 1;
+  transform: none;
+}
+
+.hero--intro .hero__image,
+.hero--intro .hero__title {
+  animation: hero-rise-in var(--hero-d-cascade) var(--hero-ease-appear) var(--hero-t-cascade-1) both;
+}
+
+.hero--intro .hero__text {
+  animation: hero-rise-in var(--hero-d-cascade) var(--hero-ease-appear) var(--hero-t-cascade-2) both;
+}
+
+.hero--intro .hero__button {
+  animation: hero-rise-in var(--hero-d-cascade) var(--hero-ease-appear) var(--hero-t-cascade-3) both;
+}
+
+.hero--intro .hero__cards .action-card:nth-child(1) {
+  animation: hero-rise-in var(--hero-d-cascade) var(--hero-ease-appear) var(--hero-t-cascade-4) both;
+}
+
+.hero--intro .hero__cards .action-card:nth-child(2) {
+  animation: hero-rise-in var(--hero-d-cascade) var(--hero-ease-appear) var(--hero-t-cascade-5) both;
+}
+
+/* Цветные логотипы — только opacity, без сдвига (белый двойник просто исчезает под шторкой 2) */
+.hero--intro .hero__logos--color {
+  animation: hero-fade-in var(--hero-d-logos-color) var(--hero-ease-appear) var(--hero-t-logos-color) both;
+}
+
+/*
+ * Пока шрифт не подтянулся (useHeroIntro ждёт document.fonts.ready), весь каскад стоит на паузе —
+ * animation-fill-mode: both держит стартовый кадр (opacity 0), поэтому паузa не показывает ничего
+ * «недоделанного». animation-delay не тикает на паузе, так что снятие класса просто сдвигает весь
+ * таймлайн на момент готовности шрифтов, без смещений в hero-intro.ts.
+ */
+.hero--fonts-pending .hero__screen-glow,
+.hero--fonts-pending .hero__screen-title,
+.hero--fonts-pending .hero__screen-picture,
+.hero--fonts-pending .hero__logos--white,
+.hero--fonts-pending .hero__curtain--1,
+.hero--fonts-pending .hero__curtain--2,
+.hero--fonts-pending .hero__image,
+.hero--fonts-pending .hero__title,
+.hero--fonts-pending .hero__text,
+.hero--fonts-pending .hero__button,
+.hero--fonts-pending .hero__cards .action-card,
+.hero--fonts-pending .hero__logos--color {
+  animation-play-state: paused;
+}
+
+/* Подстраховка поверх JS: если prefers-reduced-motion меняется быстрее, чем сработает слушатель в
+   useHeroIntro, — анимации всё равно не будет (сам `.hero__timeline` при этом уже снят JS-хуком) */
+@media (prefers-reduced-motion: reduce) {
+  .hero__timeline {
+    display: none;
+  }
+
+  .hero__image,
+  .hero__title,
+  .hero__text,
+  .hero__button,
+  .hero__cards .action-card,
+  .hero__logos--color {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px)
+ * ============================================================================
+ * Колонка по макету mobile-step-3: иллюстрация → логотипы → заголовок → текст → кнопка → карточки, всё по
+ * центру, зазор между блоками 20px (у карточек внутри 12px). Иллюстрация из абсолютной становится обычным
+ * блоком сверху (order: -2), вплотную над логотипами.
+ */
+@media (max-width: 1199.98px) {
+  /* Секция — обычный блок без «первого экрана на 100vh»; сверху отступа нет — иллюстрация сама заходит за край */
+  .hero {
+    display: block;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .hero__inner {
+    flex: none;
+    padding-bottom: 0;
+  }
+
+  /* Блок контента «растворяется»: его дети снова участвуют во flex-колонке контейнера (порядок/order как раньше) */
+  .hero__content {
+    display: contents;
+  }
+
+  /* Мобильный порядок DOM (vk, ×, textru) уже читается как «VK Реклама × Текст.ру» — реверс только для
+     десктопа. Логотипы — сразу под иллюстрацией, над заголовком (белый двойник на экранах 1–2 стоит выше, как в макете) */
+  .hero__logos {
+    order: -1;
+    margin-bottom: 20px;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .hero__logos-slot.container {
+    padding-inline: var(--page-gutter);
+  }
+
+  /* Экраны интро и шторки — ровно на первый экран телефона, а не на всю секцию (она в ~1,5 раза выше окна):
+     иначе шторки проезжали бы за экран, а цветной фон тянулся до самых карточек */
+  .hero__timeline {
+    bottom: auto;
+    height: min(100%, 100svh);
+  }
+
+  /*
+   * Экраны 1–2 (макет 375px, предварительно — мобильную адаптацию доводим отдельно): заголовок ВСЕГДА на одной
+   * высоте (152px от верха страницы) в обоих экранах, картинка 300×300 на 207px ниже верха заголовка, блик 238px.
+   * Здесь — жёсткие координаты макета, а не центрирование по экрану, как на десктопе.
+   */
+
+  /* Самая широкая строка («бизнес-цель», «рекламу под») ≈ 7,3 размера шрифта: размер ужимается под колонку
+     (50px из макета — на широких), иначе слово не помещается и заголовок разваливается на 5 строк */
+  .hero__screen-title.t-h1 {
+    top: 152px;
+    right: var(--page-gutter);
+    bottom: auto;
+    left: var(--page-gutter);
+    width: auto;
+    height: auto;
+    margin-block: 0;
+    font-size: min(50px, calc((100vw - 2 * var(--page-gutter)) / 7.4));
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+  }
+
+  .hero__screen-glow {
+    top: calc(152px + var(--screen-glow-top));
+    left: calc(50% - 110.5px);
+    width: 238px;
+    height: 238px;
+  }
+
+  .hero__screen-picture {
+    top: 359px;
+    bottom: auto;
+    left: calc(50% - 149.5px);
+    width: 300px;
+    height: 300px;
+    margin-block: 0;
+  }
+
+  .hero__screen--1 {
+    --screen-glow-top: 206px;
+  }
+
+  .hero__screen--2 {
+    --screen-glow-top: 196px;
+  }
+
+  /* Заголовок и текст — по левому краю (отклонение от макета по просьбе пользователя, там было по центру) */
+  .hero__intro {
+    align-items: flex-start;
+    width: auto;
+    gap: 20px;
+    text-align: left;
+  }
+
+  /*
+   * Слово «результата» в заголовке самое длинное («до результата» ≈ 8.2 размера шрифта в ширину),
+   * при 50px оно шире экрана 375px. Размер шрифта ужимается под ширину окна, но не больше 50px из макета;
+   * межстрочный (56/50 = 1.12) и трекинг заданы в em, чтобы масштабироваться вместе с ним. nowrap остаётся:
+   * перенос слова сдвигал бы весь блок при смене слова.
+   */
+  .hero__title.t-h1 {
+    font-size: min(50px, calc((100vw - 2 * var(--page-gutter)) / 8.4));
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+
+  .hero__text {
+    width: auto;
+  }
+
+  .hero__button {
+    width: 100%;
+  }
+
+  .hero__cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  /*
+   * Иллюстрация: рамка 385×333 при экране 375 — шире экрана на 10px и сдвинута на 10px влево (гасится
+   * глобальным .landing{overflow-x:clip}, см. App.css), верхние 28px уходят за верх страницы — там уже
+   * ничего нет (hero — первая секция), поэтому просто не видны, обрезать нечем и не нужно. Ширина
+   * считается от окна (+10px), пропорция 385:333 — из макета; на планшетах ограничена 560px и
+   * центрируется. Рамка вплотную над логотипами (margin-bottom 0).
+   */
+  .hero__image {
+    position: relative;
+    top: auto;
+    left: -5px;
+    order: -2;
+    align-self: center;
+    width: min(calc(100vw + 10px), 560px);
+    height: auto;
+    margin: -28px 0 0;
+    aspect-ratio: 385 / 333;
+  }
+
+  /* Рисунок мобильного макета — квадрат 1024×1024, растянутый на всю рамку (так в Figma), без поворота */
+  /* Рисунок не участвует в расчёте высоты (иначе квадрат растянул бы рамку по своей пропорции 1:1) */
+  .hero__image picture {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .hero__picture {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    transform: none;
+  }
+}

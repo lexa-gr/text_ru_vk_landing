@@ -1,0 +1,329 @@
+/*
+ * Карточка — сетка из двух строк: шапка (по содержимому) и тело (всё остальное). Фон (белый и
+ * цветной фон шапки) вынесен на слой .price-card__base и не лежит на самой карточке, а
+ * overflow: hidden со скруглением перенесён на него: в 3D содержимое лежит ПОД оболочкой, и
+ * непрозрачный фон или overflow на самой карточке закрыли бы уходящие вглубь слои.
+ */
+.price-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  border-radius: var(--radius-base);
+}
+
+/*
+ * TILT + PARALLAX: общий 3D-режим и слои — styles/parallax.css, числа — effects/parallax.config.ts. Ядро ставит на
+ * карточку классы action-card--tilting / --hovered (имена зашиты в ядре и общие для всех карточек).
+ *
+ * Слои шапки (текст, цена, плашка) лежат не прямо в карточке, а внутри .price-card__head и .price-card__pricing.
+ * Оба помечены data-parallax-group: на время наклона они пропускают 3D дальше (сами не двигаются, z = 0).
+ */
+
+/*
+ * Фон — самый дальний слой. Растянут на обе строки сетки и сам становится subgrid по строкам:
+ * цветной фон шапки (первая строка) всегда ровно по высоте шапки, а не по фиксированному числу.
+ * Это один слой, а не два: у двух слоёв разные центры, и перспектива разводила бы их контуры.
+ */
+.price-card__base {
+  display: grid;
+  grid-area: 1 / 1 / 3 / 2;
+  grid-template-rows: subgrid;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #fff;
+}
+
+.price-card__base-head {
+  grid-row: 1;
+}
+
+.price-card--pro .price-card__base-head {
+  background: var(--color-red);
+}
+
+.price-card--premium .price-card__base-head {
+  background: var(--color-blue);
+}
+
+.price-card__head {
+  display: flex;
+  grid-area: 1 / 1;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 32px;
+  color: var(--color-white);
+}
+
+.price-card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-card__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.price-card__title {
+  white-space: nowrap;
+}
+
+.price-card__pricing {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.price-card__price-old {
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+.price-card__price-current {
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.price-card__price-value {
+  font: 400 var(--h2-size) / var(--h2-line) var(--font-display);
+  letter-spacing: var(--h2-spacing);
+}
+
+.price-card__price-period {
+  font: 400 20px / normal var(--font-accent);
+}
+
+.price-card__discount {
+  padding: 1px 14px 7px 12px;
+  border-radius: 16px;
+  background: var(--color-white);
+  color: var(--color-black);
+  /* Unbounded Black (900) — единственное место в проекте с этим начертанием */
+  font: 900 32px / 40px var(--font-display);
+  letter-spacing: -0.64px;
+  white-space: nowrap;
+}
+
+/* Нулевой уровень: не участвует в параллаксе, наклоняется только вместе с карточкой */
+.price-card__body {
+  display: flex;
+  grid-area: 2 / 1;
+  flex-direction: column;
+  gap: 44px;
+  justify-content: space-between;
+  padding: 32px;
+}
+
+.price-card__features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Переключатель списка («Подробнее» / «Скрыть») — только для мобильной раскладки */
+.price-card__toggle {
+  display: none;
+}
+
+/* ---------- ОБОЛОЧКА (стекло) + SPOTLIGHT: световое пятно под курсором (src/effects/spotlight.ts) ---------- */
+
+/*
+ * Самый ближний слой карточки без параллакса (z = 0). В покое невидимо; при наведении проявляется
+ * вместе с бликом: светлая кромка по контуру + пятно света. Слой-маска обрезает пятно по
+ * границам и скруглению карточки.
+ */
+.price-card__spotlight {
+  --glow-bleed: 30px;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease; /* fade-out */
+  /* Свой слой для дорогого blur-пятна (__glow) — см. комментарий в ActionCard.css */
+  will-change: opacity;
+  contain: paint;
+}
+
+.price-card.action-card--hovered .price-card__spotlight {
+  opacity: 1;
+  transition-duration: 0.2s; /* fade-in */
+}
+
+/* Пятно шире карточки на --glow-bleed с каждой стороны (blur не «съедает» край); --x, --y, --spot-r выставляет JS */
+.price-card__glow {
+  position: absolute;
+  inset: calc(var(--glow-bleed) * -1);
+  background: radial-gradient(
+    circle var(--spot-r, 360px) at calc(var(--x, 50%) + var(--glow-bleed)) calc(var(--y, 50%) + var(--glow-bleed)),
+    rgba(255, 255, 255, 0.125) 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(20px);
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px), макет 375px
+ * ============================================================================
+ * Всё по мобильному макету (узел price-card--pro (mobile)): скругление 24px (в этом макете число, не
+ * переменная), шапка — колонка: заголовок, затем плашка скидки и цена друг под другом (старой цены нет).
+ * Тело: кнопка «Получить предложение» (залитая чёрная), список преимуществ, скрытый под переключателем
+ * «Подробнее» / «Скрыть». Эффект tilt отключён (useCardEffects), слои остаются как есть.
+ */
+@media (max-width: 1199.98px) {
+  .price-card {
+    border-radius: 24px;
+  }
+
+  .price-card__head {
+    padding: 20px;
+  }
+
+  .price-card__body {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  /*
+   * Заголовок — mobile/h3 (26/32) в одну строку, как в макете. «Премиум-подписка» ≈ 11,6 размера шрифта в ширину;
+   * в макете карточка шириной 375, у нас колонка уже (поля страницы + отступы карточки), поэтому размер
+   * ужимается под неё, но не больше 26px.
+   */
+  .price-card__title.t-h3 {
+    font-size: min(var(--h3-size), calc((100vw - 2 * var(--page-gutter) - 40px) / 11.7));
+    white-space: nowrap;
+  }
+
+  .price-card__pricing {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .price-card__discount {
+    order: -1;
+    padding: 1px 14px 2px 12px;
+    font-size: 26px;
+    line-height: 32px;
+    letter-spacing: -0.26px;
+  }
+
+  .price-card__price-old {
+    display: none;
+  }
+
+  /* Цена — 50/56 (mobile/h1 с межстрочным 56), но не шире карточки на узких экранах */
+  .price-card__price-value {
+    font-size: min(var(--h1-size), 13.3vw);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+
+  .price-card__price-period {
+    font: 300 16px / 24px var(--font-text);
+  }
+
+  /* Кнопка в мобильном макете — залитая чёрная (на десктопе — контурная) */
+  .price-card__button.button--black.button--outline {
+    background: var(--color-black);
+    color: var(--color-white);
+    box-shadow: none;
+  }
+
+  .price-card__button.button--black.button--outline:hover {
+    background: var(--button-fill-black-hover);
+  }
+
+  .price-card__button.button--black.button--outline:active {
+    background: var(--button-fill-black-active);
+  }
+
+  .price-card__features {
+    gap: 12px;
+  }
+
+  /* Порядок как в макете: кнопка, список, переключатель (в DOM список идёт первым — как на десктопе) */
+  .price-card__button {
+    order: -2;
+  }
+
+  .price-card__collapse {
+    order: -1;
+  }
+
+  /*
+   * Скрывающийся список: высота плавно 0 → auto через grid-template-rows (0fr → 1fr). Пока список скрыт,
+   * отрицательный margin гасит лишний gap вокруг него (кнопка → «Подробнее» через один зазор 16px).
+   */
+  .price-card__collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    margin-bottom: -16px;
+    transition:
+      grid-template-rows 0.3s ease,
+      margin-bottom 0.3s ease;
+  }
+
+  .price-card--expanded .price-card__collapse {
+    grid-template-rows: 1fr;
+    margin-bottom: 0;
+  }
+
+  /*
+   * Список обрезается (overflow: hidden) только пока схлопнут или анимируется: у выделенного пункта рамка
+   * выступает наружу за его ячейку (box-shadow) и в обрезке пропала бы. Раскрытым он не обрезается —
+   * overflow переключается дискретно, с задержкой на время раскрытия (0.3s, как у .price-card__collapse).
+   */
+  .price-card__features {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .price-card--expanded .price-card__features {
+    overflow: visible;
+    transition: overflow 0s 0.3s allow-discrete;
+  }
+
+  .price-card__toggle {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-blue);
+    font: 300 16px / 24px var(--font-text);
+    cursor: pointer;
+  }
+
+  .price-card__toggle:focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  .price-card__toggle-icon {
+    flex: none;
+  }
+}
+
+@media (max-width: 1199.98px) and (prefers-reduced-motion: reduce) {
+  .price-card__collapse {
+    transition: none;
+  }
+}

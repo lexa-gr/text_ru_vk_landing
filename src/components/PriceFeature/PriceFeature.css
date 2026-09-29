@@ -1,0 +1,73 @@
+.price-feature__head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.price-feature__icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 61px;
+  background: var(--color-green);
+}
+
+.price-feature--highlighted .price-feature__icon {
+  background: var(--color-blue);
+}
+
+.price-feature__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.price-feature__description {
+  padding-left: 36px;
+}
+
+/* В макете обводка 9px снаружи блока: рисуем её тенью, чтобы текст остался на одной линии с остальными пунктами */
+.price-feature--highlighted {
+  border-radius: 8px;
+  background: var(--color-highlight);
+  box-shadow: 0 0 0 9px var(--color-highlight);
+}
+
+/* Короткая форма заголовка (shortTitle) — только на мобильном */
+.price-feature__title-short {
+  display: none;
+}
+
+/*
+ * Мобильная / планшетная раскладка (< 1200px), макет 375px: галочка в круге 16px — теперь такая же, как
+ * на десктопе, отступ между галочкой и текстом 8px, описание — caption 12/16 с отступом 24px (16 + 8),
+ * чтобы стоять ровно под заголовком.
+ */
+@media (max-width: 1199.98px) {
+  .price-feature__head {
+    gap: 8px;
+  }
+
+  .price-feature__description {
+    padding-left: 24px;
+  }
+
+  .price-feature__text.t-description {
+    font: 300 var(--caption-size) / var(--caption-line) var(--font-text);
+  }
+
+  /* Рамка выделенного пункта в мобильном макете — 6px (на десктопе 9px), по-прежнему снаружи: размер ячейки не меняется */
+  .price-feature--highlighted {
+    box-shadow: 0 0 0 6px var(--color-highlight);
+  }
+
+  .price-feature__title-full {
+    display: none;
+  }
+
+  .price-feature__title-short {
+    display: inline;
+  }
+}

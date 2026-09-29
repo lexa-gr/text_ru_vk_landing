@@ -1,0 +1,43 @@
+.footer {
+  padding: 40px 0;
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.footer__logos {
+  display: flex;
+  align-items: center;
+  gap: 79px;
+}
+
+/*
+ * Лого Текст.ру (textruBrand102, 102×27) мельче VK Рекламы (vkWhite220, 220×41) — растягиваем по высоте
+ * до 40px, чтобы визуально совпадали; width: auto держит пропорции по width/height атрибутам img.
+ */
+.footer__logo--textru {
+  width: auto;
+  height: 40px;
+}
+
+.footer__copyright {
+  opacity: 0.5;
+}
+
+/* Мобильная / планшетная раскладка (< 1200px), макет 375px: логотипы столбиком, копирайт и ссылки под ними */
+@media (max-width: 1199.98px) {
+  .footer__inner {
+    gap: 32px;
+  }
+
+  .footer__logos {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 23px;
+  }
+}

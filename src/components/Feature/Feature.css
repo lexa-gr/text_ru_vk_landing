@@ -1,0 +1,18 @@
+.feature__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+  min-width: 0;
+}
+
+.feature__text {
+  letter-spacing: var(--body-tight-spacing);
+}
+
+/* Мобильная / планшетная раскладка (< 1200px): зазор между логотипом, заголовком и текстом 16px (на десктопе 22px) */
+@media (max-width: 1199.98px) {
+  .feature__content {
+    gap: 16px;
+  }
+}

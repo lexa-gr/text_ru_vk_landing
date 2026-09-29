@@ -1,0 +1,30 @@
+/*
+ * Логотипы брендов в блоках страницы на мобильном (< 1200px): везде один размер — как в карточках hero
+ * (.action-card), значения — токены --logo-* в tokens.css. На десктопе у каждого блока свой размер из макета
+ * (атрибуты width/height у <img>, см. assets/logos), там ничего не переопределяется.
+ * Не затронуты логотипы-«замки» с крестиком: плашка шапки (.header__logos) и верх hero (.hero__logos).
+ * img.class — специфичность выше правил компонентов, порядок подключения не важен.
+ */
+@media (max-width: 1199.98px) {
+  img.action-card__logo-vk,
+  img.tool-card__logo-vk,
+  img.price-card__logo-vk,
+  img.activation-card__logo-vk,
+  img.feature__logo--vk,
+  img.cta__logo--vk,
+  img.footer__logo--vk {
+    width: var(--logo-vk-width);
+    height: var(--logo-vk-height);
+  }
+
+  img.action-card__logo-textru,
+  img.tool-card__logo-textru,
+  img.price-card__logo-textru,
+  img.activation-card__logo-textru,
+  img.feature__logo--textru,
+  img.cta__logo--textru,
+  img.footer__logo--textru {
+    width: var(--logo-textru-width);
+    height: var(--logo-textru-height);
+  }
+}

@@ -1,0 +1,38 @@
+.section-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  color: var(--color-black);
+  text-align: center;
+}
+
+.section-title--light {
+  color: var(--color-white);
+}
+
+/* Переносы строк заданы в макете вручную */
+.section-title__title {
+  white-space: nowrap;
+}
+
+.section-title__subtitle {
+  letter-spacing: var(--body-tight-spacing);
+}
+
+/* Мобильная раскладка: заголовок и подзаголовок по левому краю, строки переносятся сами, зазор h2 → текст 16px */
+@media (max-width: 1199.98px) {
+  .section-title {
+    align-items: flex-start;
+    gap: 16px;
+    text-align: left;
+  }
+
+  .section-title__title {
+    white-space: normal;
+  }
+
+  .section-title__subtitle {
+    letter-spacing: normal;
+  }
+}

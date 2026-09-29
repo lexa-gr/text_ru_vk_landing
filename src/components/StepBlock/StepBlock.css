@@ -1,0 +1,74 @@
+.step-block {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/*
+ * padding-top центрирует точку по высоте строки заголовка (--body-line), а не по верху блока: без него
+ * точка (16px) стоит вровень с самым верхом текста, а не с его вертикальным центром. Завязано на тот же
+ * токен, что и .step-block__title (t-body-bold), поэтому остаётся верным и в мобильной раскладке, где
+ * --body-line меньше.
+ */
+.step-block__rail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  align-self: stretch;
+  width: 36px;
+  padding-top: calc((var(--body-line) - 16px) / 2);
+}
+
+/* Точка: кольцо (белая заливка + цветная обводка), пропорция обводки к размеру та же, что была у 24px (1:3) */
+.step-block__dot {
+  flex: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 5.33px solid var(--color-step-idle);
+  border-radius: 50%;
+  background: var(--color-white);
+}
+
+.step-block--active .step-block__dot {
+  border-color: var(--color-green);
+}
+
+/*
+ * Точка с галочкой (icons/check.svg) — сплошной кружок 16×16 на зелёном фоне, всегда (не зависит от
+ * active/default), в отличие от кольца выше.
+ */
+.step-block__dot--check {
+  width: 16px;
+  height: 16px;
+  border-width: 0;
+  background: var(--color-green) url('../../assets/icons/check.svg') no-repeat center / 8.7px 7.3px;
+}
+
+/* Линия к следующему шагу — растягивается на высоту шага, как в макете */
+.step-block__line {
+  flex: 1;
+  width: 2px;
+  background: var(--color-step-idle);
+}
+
+.step-block__content {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * color-mix вместо opacity: у opacity затухание накопилось бы и на вложенном .step-block__highlight
+ * (opacity элемента затемняет весь его поддерево как единый слой), а здесь нужно, чтобы выделенное
+ * слово оставалось полностью непрозрачным на фоне приглушённого текста.
+ */
+.step-block__text {
+  color: color-mix(in srgb, var(--color-black) 100%, transparent);
+}
+
+.step-block__highlight {
+  color: var(--color-red);
+  font-weight: 600;
+}

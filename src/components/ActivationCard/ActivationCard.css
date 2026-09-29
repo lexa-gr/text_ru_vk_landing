@@ -1,0 +1,122 @@
+/*
+ * Карточка — сетка из двух строк: шапка (по содержимому) и тело (всё остальное). Фон (белый и
+ * цветной фон шапки) вынесен на слой .activation-card__base, а overflow: hidden со скруглением
+ * перенесён на него: в 3D содержимое лежит ПОД оболочкой, и непрозрачный фон или overflow на самой
+ * карточке закрыли бы уходящие вглубь слои. Устроено так же, как PriceCard.
+ */
+.activation-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  border-radius: var(--radius-base);
+}
+
+/*
+ * TILT + PARALLAX: общий 3D-режим и слои — styles/parallax.css, числа — effects/parallax.config.ts. Ядро ставит на
+ * карточку классы action-card--tilting / --hovered (имена зашиты в ядре и общие для всех карточек).
+ */
+
+/*
+ * Фон — самый дальний слой. Растянут на обе строки сетки и сам становится subgrid по строкам:
+ * цветной фон шапки (первая строка) всегда ровно по высоте шапки. Это один слой, а не два:
+ * у двух слоёв разные центры, и перспектива разводила бы их контуры.
+ */
+.activation-card__base {
+  display: grid;
+  grid-area: 1 / 1 / 3 / 2;
+  grid-template-rows: subgrid;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #fff;
+}
+
+.activation-card__base-head {
+  grid-row: 1;
+}
+
+.activation-card--textru .activation-card__base-head {
+  background: var(--color-red);
+}
+
+.activation-card--vk .activation-card__base-head {
+  background: var(--color-blue);
+}
+
+/* Шапка — слой параллакса под оболочкой; сам цвет лежит на слое фона */
+.activation-card__head {
+  display: flex;
+  grid-area: 1 / 1;
+  align-items: center;
+  padding: 32px;
+}
+
+/* Нулевой уровень: не участвует в параллаксе, наклоняется только вместе с карточкой */
+.activation-card__body {
+  display: flex;
+  grid-area: 2 / 1;
+  flex-direction: column;
+  gap: 24px;
+  justify-content: space-between;
+  padding: 32px;
+}
+
+.activation-card__steps {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activation-card__step:not(:last-child) {
+  padding-bottom: 12px;
+}
+
+/* ---------- ОБОЛОЧКА (стекло) + SPOTLIGHT: световое пятно под курсором (src/effects/spotlight.ts) ---------- */
+
+/*
+ * Самый ближний слой карточки без параллакса (z = 0). В покое невидимо; при наведении проявляется
+ * вместе с бликом: светлая кромка по контуру + пятно света. Слой-маска обрезает пятно по
+ * границам и скруглению карточки.
+ */
+.activation-card__spotlight {
+  --glow-bleed: 30px;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease; /* fade-out */
+  /* Свой слой для дорогого blur-пятна (__glow) — см. комментарий в ActionCard.css */
+  will-change: opacity;
+  contain: paint;
+}
+
+.activation-card.action-card--hovered .activation-card__spotlight {
+  opacity: 1;
+  transition-duration: 0.2s; /* fade-in */
+}
+
+/* Пятно шире карточки на --glow-bleed с каждой стороны (blur не «съедает» край); --x, --y, --spot-r выставляет JS */
+.activation-card__glow {
+  position: absolute;
+  inset: calc(var(--glow-bleed) * -1);
+  background: radial-gradient(
+    circle var(--spot-r, 360px) at calc(var(--x, 50%) + var(--glow-bleed)) calc(var(--y, 50%) + var(--glow-bleed)),
+    rgba(255, 255, 255, 0.125) 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(20px);
+}
+
+/* Мобильная / планшетная раскладка (< 1200px), макет 375px */
+@media (max-width: 1199.98px) {
+  .activation-card__body {
+    padding: 20px;
+  }
+}

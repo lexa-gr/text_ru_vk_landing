@@ -1,0 +1,37 @@
+/* Текстовые стили из Figma (h1–h3, body, body-bold, description). */
+.t-h1,
+.t-h2,
+.t-h3,
+.t-body,
+.t-body-bold,
+.t-description {
+  margin: 0;
+}
+
+.t-h1 {
+  font: 400 var(--h1-size) / var(--h1-line) var(--font-display);
+  letter-spacing: var(--h1-spacing);
+}
+
+.t-h2 {
+  font: 400 var(--h2-size) / var(--h2-line) var(--font-display);
+  letter-spacing: var(--h2-spacing);
+}
+
+.t-h3 {
+  font: 400 var(--h3-size) / var(--h3-line) var(--font-display);
+  letter-spacing: var(--h3-spacing);
+}
+
+.t-body {
+  font: 300 var(--body-size) / var(--body-line) var(--font-text);
+}
+
+.t-body-bold {
+  font: 600 var(--body-size) / var(--body-line) var(--font-text);
+  letter-spacing: var(--body-tight-spacing);
+}
+
+.t-description {
+  font: 300 var(--description-size) / var(--description-line) var(--font-text);
+}

@@ -1,0 +1,168 @@
+.features__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+/*
+ * Список шагов: слева рельса-таймлайн (точка на шаг + заливка по скроллу, см. effects/features-rail.ts),
+ * справа сами шаги (текст + картинка в одном ряду, см. .feature ниже).
+ */
+.features__list {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/*
+ * Рельса сама по себе без высоты: все точки/линии — abs-позиционированные (top им проставляет JS
+ * относительно верха ЭТОГО контейнера), поэтому overflow тут не обрезаем. Ширина — под точку 16px
+ * с запасом по бокам, как в макете.
+ */
+.features__rail {
+  position: relative;
+  flex: none;
+  width: 36px;
+}
+
+/*
+ * Кольцо: белая заливка + цветная обводка 5px — диаметр 16px (5.5 + 5/2 × 2), как в макете. Пока шаг не
+ * пройден, точка вполовину меньше (визуально 8px) и «зумится» до полного размера при активации.
+ */
+.features__rail-dot {
+  position: absolute;
+  left: 10px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 5px solid var(--color-step-idle);
+  border-radius: 50%;
+  background: var(--color-white);
+  transform: scale(0.5);
+  transition:
+    transform 0.25s ease,
+    border-color 0.2s ease;
+}
+
+/* Пройденный шаг: то же кольцо, просто с зелёной обводкой вместо серой */
+.features__rail-dot[data-reached] {
+  border-color: var(--color-green);
+  transform: scale(1);
+}
+
+/*
+ * Последний шаг — сплошной зелёный круг с белой галочкой (icons/check.svg) вместо кольца, крупнее
+ * остальных точек (24px вместо 16px) и обводка убрана (при box-sizing: border-box она иначе съедала бы
+ * почти всё место под иконку). left и margin-top компенсируют разницу в размере, чтобы центр точки
+ * остался на том же месте, что и у обычного кольца (иначе она сместилась бы вниз-вправо от anchor'а,
+ * который выставляет JS). У первых шагов иконки нет — просто точка, см. правило выше.
+ */
+.features__rail-dot--check[data-reached] {
+  left: 6px;
+  margin-top: -4px;
+  width: 24px;
+  height: 24px;
+  border-width: 0;
+  background: var(--color-green) url('../../assets/icons/check.svg') no-repeat center / 12px 10.1px;
+}
+
+/* Серый «трек»; заливка внутри — отдельный слой, растёт сверху вниз по скроллу (JS выставляет height) */
+.features__rail-line {
+  position: absolute;
+  left: 17.5px;
+  width: 1px;
+  background: var(--color-step-idle);
+}
+
+.features__rail-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background: var(--color-green);
+}
+
+.features__steps {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 80px;
+  min-width: 0;
+}
+
+/* Шаг: текст слева, картинка справа (на мобильном — колонкой, см. ниже) */
+.feature {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.feature__image {
+  flex: none;
+  width: 600px;
+  height: auto;
+  object-fit: cover;
+}
+
+.feature__image--framed {
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-card);
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px)
+ * ============================================================================
+ * Шаг — колонкой (текст сверху, картинка снизу, gap 16px). Рельса у́же и прижата ближе к истинному
+ * краю экрана (отрицательный margin компенсирует часть --page-gutter), чтобы освободить ширину под текст.
+ */
+@media (max-width: 1199.98px) {
+  .features__inner {
+    gap: 80px;
+  }
+
+  .feature__text {
+    letter-spacing: normal;
+  }
+
+  .features__list {
+    gap: 12px;
+  }
+
+  .features__rail {
+    width: 16px;
+    margin-left: calc(-1 * var(--page-gutter) + 8px);
+  }
+
+  .features__rail-dot {
+    left: 0;
+  }
+
+  /* Рельса на мобильном уже (16px) — центр точки уходит в отрицательный left, как у обычной 16px-точки (0) */
+  .features__rail-dot--check[data-reached] {
+    left: -4px;
+  }
+
+  .features__rail-line {
+    left: 7.5px;
+  }
+
+  .feature {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .feature__image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .features__rail-dot {
+    transition: none;
+  }
+}

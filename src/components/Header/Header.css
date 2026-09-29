@@ -1,0 +1,179 @@
+.header {
+  position: fixed;
+  top: var(--header-top);
+  left: 50%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--container-width);
+  height: var(--header-height);
+  padding: 12px 12px 12px 28px;
+  border: 1px solid var(--color-border-header);
+  border-radius: 71px;
+  background: var(--color-header-bg);
+  box-shadow: var(--shadow-header);
+  backdrop-filter: blur(6px);
+
+  /* Скрыт, пока страница почти не прокручена (см. HEADER_SHOW_SCROLL в Header.tsx); visibility нужна,
+     чтобы ссылки не попадали в Tab-фокус */
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -130%);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+.header--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition-delay: 0s;
+}
+
+/* Бургер и меню — только для узкой раскладки */
+.header__burger,
+.header__menu {
+  display: none;
+}
+
+/*
+ * ============================================================================
+ * МОБИЛЬНАЯ / ПЛАНШЕТНАЯ РАСКЛАДКА (< 1200px): та же логика появления (скрыта / .header--visible из
+ * правил выше), плашка компактная, справа бургер, кнопка «Получить предложение» и разделы страницы —
+ * в выпадающем меню.
+ * ============================================================================
+ */
+@media (max-width: 1199.98px) {
+  .header {
+    width: calc(100% - 2 * var(--page-gutter));
+    max-width: 760px;
+    padding: 8px 8px 8px 20px;
+    border-radius: 40px;
+  }
+
+  .header__button {
+    display: none;
+  }
+
+  /* Логотипы одной высоты: три картинки не влезают в узкую плашку в натуральный размер */
+  .header__logos {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .header__logos img {
+    width: auto;
+    height: 20px;
+  }
+
+  .header__logos .logo-group__cross {
+    height: 12px;
+  }
+
+  .header__burger {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--color-black);
+    cursor: pointer;
+  }
+
+  .header__burger:focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
+
+  .header__burger-line {
+    position: absolute;
+    left: 14px;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition:
+      transform 0.25s ease,
+      opacity 0.2s ease;
+  }
+
+  .header__burger-line:nth-child(1) {
+    top: 16px;
+  }
+
+  .header__burger-line:nth-child(2) {
+    top: 23px;
+  }
+
+  .header__burger-line:nth-child(3) {
+    top: 30px;
+  }
+
+  /* Открытое меню: бургер превращается в крестик */
+  .header--open .header__burger-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .header--open .header__burger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .header--open .header__burger-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Выпадающая панель под плашкой */
+  .header__menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 20px 20px;
+    border: 1px solid var(--color-border-header);
+    border-radius: 32px;
+    background: var(--color-white);
+    box-shadow: var(--shadow-header);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0s linear 0.2s;
+  }
+
+  .header--open .header__menu {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .header__menu-link {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border-header);
+    color: var(--color-black);
+    text-decoration: none;
+  }
+
+  .header__menu-button {
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 1199.98px) and (prefers-reduced-motion: reduce) {
+  .header__burger-line,
+  .header__menu {
+    transition: none;
+  }
+}

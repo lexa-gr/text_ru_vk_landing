@@ -1,0 +1,5 @@
+.curtain {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
