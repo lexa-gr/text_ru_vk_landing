@@ -53,29 +53,38 @@ export function Pricing() {
           textWidth={886}
         />
 
-        <div className="pricing__cards" ref={cardsRef}>
-          <PriceCard
-            variant="pro"
-            logo="textruWhite102"
-            title="ПРО-аккаунт"
-            subtitle="Для работы с контентом"
-            oldPrice="2 900 ₽"
-            price="2 320 ₽"
-            discount="-20%"
-            features={proFeatures}
-            href="#activation"
-          />
-          <PriceCard
-            variant="premium"
-            logo="vkWhite161"
-            title="Премиум-подписка"
-            subtitle="Для работы с рекламой"
-            oldPrice="990 ₽"
-            price="495 ₽"
-            discount="-50%"
-            features={premiumFeatures}
-            href="#activation"
-          />
+        {/* Карточки + сноска к «бонусами*» — отдельной группой, чтобы сноска не отъезжала на gap секции */}
+        <div className="pricing__body">
+          <div className="pricing__cards" ref={cardsRef}>
+            <PriceCard
+              variant="pro"
+              logo="textruWhite102"
+              title="ПРО-аккаунт"
+              subtitle="Для работы с контентом"
+              oldPrice="2 900 ₽"
+              price="2 320 ₽"
+              discount="-20%"
+              features={proFeatures}
+              href="#activation"
+            />
+            <PriceCard
+              variant="premium"
+              logo="vkWhite161"
+              title="Премиум-подписка"
+              subtitle="Для работы с рекламой"
+              oldPrice="990 ₽"
+              price="495 ₽"
+              discount="-50%"
+              features={premiumFeatures}
+              href="#activation"
+            />
+          </div>
+
+          <p className="pricing__note">
+            * Правила акции: бонусы начисляются новым пользователям VK&nbsp;Рекламы по промокоду
+            <br />
+            при пополнении рекламного кабинета, максимальная сумма бонусов&nbsp;—&nbsp;10&nbsp;000&nbsp;₽.
+          </p>
         </div>
       </Container>
     </section>

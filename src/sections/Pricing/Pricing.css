@@ -8,10 +8,27 @@
   gap: 80px;
 }
 
+.pricing__body {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
 .pricing__cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
+}
+
+/* Сноска к «бонусами*»: мелкий полупрозрачный текст под карточками */
+.pricing__note {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-black);
+  opacity: 0.5;
+  text-align: center;
 }
 
 @media (max-width: 1199.98px) {
@@ -21,6 +38,10 @@
 
   .pricing__inner {
     gap: 40px;
+  }
+
+  .pricing__body {
+    gap: 20px;
   }
 
   .pricing__cards {
