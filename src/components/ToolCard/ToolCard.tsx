@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { getLogoBrand, type LogoName } from '../../assets/logos'
 import { cx } from '../../utils/cx'
 import { Logo } from '../Logo/Logo'
@@ -12,7 +14,7 @@ type ToolCardIllustration = {
 type ToolCardProps = {
   variant: 'create-content' | 'polish-text' | 'launch-ads' | 'ai-materials'
   logo: LogoName
-  title: string
+  title: ReactNode
   text: string
   grow?: boolean
   /** Иллюстрация, выходящая за границы карточки: часть карточки, лежит ПЕРЕД оболочкой. */
