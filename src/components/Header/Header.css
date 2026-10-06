@@ -23,6 +23,7 @@
   transition:
     opacity 0.25s ease,
     transform 0.25s ease,
+    background-color 0.3s ease,
     visibility 0s linear 0.25s;
 }
 
@@ -35,7 +36,7 @@
 
 /* Бургер и меню — только для узкой раскладки */
 .header__burger,
-.header__menu {
+.header-menu {
   display: none;
 }
 
@@ -56,6 +57,11 @@
 
   .header__button {
     display: none;
+  }
+
+  /* При открытом меню плашка — непрозрачная белая, в пару к панели меню */
+  .header--open {
+    background-color: var(--color-white);
   }
 
   /* Логотипы одной высоты: три картинки не влезают в узкую плашку в натуральный размер */
@@ -129,51 +135,89 @@
     transform: translateY(-7px) rotate(-45deg);
   }
 
-  /* Выпадающая панель под плашкой */
-  .header__menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
+  /*
+   * Меню: вся страница уходит в белое и размывается, поверх — непрозрачная белая панель отдельным
+   * блоком до середины экрана (выезжает сверху из-под плашки). Слой лежит под плашкой
+   * (z-index 99 < 100), поэтому логотипы и крестик остаются сверху. В панели разделы — наверху,
+   * кнопка «Получить предложение» прижата к низу.
+   */
+  .header-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 12px 20px 20px;
-    border: 1px solid var(--color-border-header);
+    padding: calc(var(--header-top) + var(--header-height) + 12px) var(--page-gutter)
+      calc(12px + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.25s ease,
+      visibility 0s linear 0.25s;
+  }
+
+  .header-menu--open {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .header-menu__panel {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    /* Низ панели — на середине экрана (верх слоя меню отступает на плашку + 12px); если пунктам
+       не хватает места, панель растёт по содержимому */
+    min-height: calc(50dvh - var(--header-top) - var(--header-height) - 12px);
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px 16px;
     border-radius: 32px;
     background: var(--color-white);
     box-shadow: var(--shadow-header);
     opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
+    transform: translateY(-24px);
+    transform-origin: top center;
     transition:
-      opacity 0.2s ease,
-      transform 0.2s ease,
-      visibility 0s linear 0.2s;
+      opacity 0.3s ease,
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .header--open .header__menu {
+  .header-menu--open .header-menu__panel {
     opacity: 1;
-    visibility: visible;
     transform: none;
-    transition-delay: 0s;
   }
 
-  .header__menu-link {
+  .header-menu__links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 16px;
+  }
+
+  .header-menu__link {
     padding: 12px 0;
     border-bottom: 1px solid var(--color-border-header);
     color: var(--color-black);
     text-decoration: none;
   }
 
-  .header__menu-button {
-    margin-top: 16px;
+  .header-menu__link:last-child {
+    border-bottom: 0;
   }
 }
 
 @media (max-width: 1199.98px) and (prefers-reduced-motion: reduce) {
   .header__burger-line,
-  .header__menu {
+  .header-menu,
+  .header-menu__panel {
     transition: none;
   }
 }

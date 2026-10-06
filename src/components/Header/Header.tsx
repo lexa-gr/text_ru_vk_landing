@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { DESKTOP_QUERY, useMediaQuery } from '../../hooks/useMediaQuery'
 import { useScrolledPast } from '../../hooks/useScrolledPast'
@@ -24,28 +24,25 @@ export function Header() {
   const scrolled = useScrolledPast(HEADER_SHOW_SCROLL)
   const desktop = useMediaQuery(DESKTOP_QUERY)
   const [menuOpen, setOpen] = useState(false)
-  const headerRef = useRef<HTMLElement>(null)
-
-  // Меню — только для узкой раскладки и только пока шапка видна: на десктопе оно всегда закрыто, а у скрытой
-  // шапки открытое меню (visibility: visible у потомка) торчало бы само по себе
+  // Меню — только для узкой раскладки и только пока шапка видна: на десктопе оно всегда закрыто, а без шапки
+  // (и её крестика) открытое меню было бы не закрыть
   const open = menuOpen && !desktop && scrolled
 
-  // Закрытие по Escape и по клику/касанию вне шапки
+  // Закрытие по Escape; страница под полноэкранным меню не прокручивается
   useEffect(() => {
     if (!open) return
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false)
     }
-    const onPointerDown = (event: PointerEvent) => {
-      if (headerRef.current && !headerRef.current.contains(event.target as Node)) setOpen(false)
-    }
+    const root = document.documentElement
+    const prevOverflow = root.style.overflow
+    root.style.overflow = 'hidden'
 
     document.addEventListener('keydown', onKeyDown)
-    document.addEventListener('pointerdown', onPointerDown)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
-      document.removeEventListener('pointerdown', onPointerDown)
+      root.style.overflow = prevOverflow
     }
   }, [open])
 
@@ -53,39 +50,55 @@ export function Header() {
   const close = () => setOpen(false)
 
   return (
-    <header
-      ref={headerRef}
-      className={cx('header', scrolled && 'header--visible', open && 'header--open')}
-      aria-hidden={hidden}
-    >
-      <LogoGroup className="header__logos" />
-      <Button className="header__button" href="#pricing" size="sm">
-        Получить предложение
-      </Button>
-
-      <button
-        className="header__burger"
-        type="button"
-        aria-label={open ? 'Закрыть меню' : 'Открыть меню'}
-        aria-expanded={open}
-        aria-controls="header-menu"
-        onClick={() => setOpen((value) => !value)}
+    <>
+      <header
+        className={cx('header', scrolled && 'header--visible', open && 'header--open')}
+        aria-hidden={hidden}
       >
-        <span className="header__burger-line" />
-        <span className="header__burger-line" />
-        <span className="header__burger-line" />
-      </button>
-
-      <nav id="header-menu" className="header__menu" aria-label="Разделы страницы" inert={!open}>
-        {MENU_LINKS.map((link) => (
-          <a key={link.href} className="header__menu-link t-body" href={link.href} onClick={close}>
-            {link.label}
-          </a>
-        ))}
-        <Button className="header__menu-button" href="#pricing" size="lg" fullWidth onClick={close}>
+        <LogoGroup className="header__logos" />
+        <Button className="header__button" href="#pricing" size="sm">
           Получить предложение
         </Button>
+
+        <button
+          className="header__burger"
+          type="button"
+          aria-label={open ? 'Закрыть меню' : 'Открыть меню'}
+          aria-expanded={open}
+          aria-controls="header-menu"
+          onClick={() => setOpen((value) => !value)}
+        >
+          <span className="header__burger-line" />
+          <span className="header__burger-line" />
+          <span className="header__burger-line" />
+        </button>
+      </header>
+
+      {/* Полноэкранное меню — соседом шапки, а не внутри: transform и backdrop-filter шапки иначе
+          ограничили бы position: fixed её рамками и погасили бы собственный blur меню */}
+      <nav
+        id="header-menu"
+        className={cx('header-menu', open && 'header-menu--open')}
+        aria-label="Разделы страницы"
+        inert={!open}
+        onClick={(event) => {
+          // Касание размытой страницы вокруг панели закрывает меню
+          if (event.target === event.currentTarget) close()
+        }}
+      >
+        <div className="header-menu__panel">
+          <div className="header-menu__links">
+            {MENU_LINKS.map((link) => (
+              <a key={link.href} className="header-menu__link t-body" href={link.href} onClick={close}>
+                {link.label}
+              </a>
+            ))}
+          </div>
+          <Button className="header-menu__button" href="#pricing" variant="fill" size="lg" fullWidth onClick={close}>
+            Получить предложение
+          </Button>
+        </div>
       </nav>
-    </header>
+    </>
   )
 }
